@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
 import 'admin_screen.dart';
-import 'map.dart'; // Asegúrate de tener esta importación
+import 'map.dart';
 
 class HomeScreen extends StatelessWidget {
   final String nombre;
@@ -20,7 +20,6 @@ class HomeScreen extends StatelessWidget {
             Text('Hola, $nombre 👋', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             SizedBox(height: 20),
 
-            // Botón para admin
             if (correo == "admin@gmail.com") 
               ElevatedButton(
                 onPressed: () {
@@ -31,17 +30,18 @@ class HomeScreen extends StatelessWidget {
 
             SizedBox(height: 10),
 
-            // Botón para ver el mapa
             ElevatedButton(
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => MapScreen()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => MapScreen(correo: correo)),
+                );
               },
               child: Text('Ver Mapa'),
             ),
 
             SizedBox(height: 10),
 
-            // Botón para cerrar sesión
             ElevatedButton(
               onPressed: () {
                 Navigator.pushAndRemoveUntil(

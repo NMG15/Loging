@@ -1,17 +1,19 @@
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
 import 'dart:io';
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   static Database? _database;
-static DatabaseHelper get instance => _instance;
-  DatabaseHelper._internal();
+
+  static DatabaseHelper get instance => _instance;
 
   factory DatabaseHelper() {
     return _instance;
   }
+
+  DatabaseHelper._internal();
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -44,14 +46,15 @@ static DatabaseHelper get instance => _instance;
           )
         ''');
 
-        // Tabla de marcadores
+        // Tabla de marcadores con relación por correo
         await db.execute('''
           CREATE TABLE marcadores (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             titulo TEXT,
             descripcion TEXT,
             latitud REAL,
-            longitud REAL
+            longitud REAL,
+            correo TEXT NOT NULL
           )
         ''');
       },
@@ -63,7 +66,8 @@ static DatabaseHelper get instance => _instance;
               titulo TEXT,
               descripcion TEXT,
               latitud REAL,
-              longitud REAL
+              longitud REAL,
+              correo TEXT NOT NULL
             )
           ''');
         }
@@ -71,7 +75,9 @@ static DatabaseHelper get instance => _instance;
     );
   }
 
-  // === Usuarios ===
+  // ==========================
+  // 🧑‍💻 FUNCIONES DE USUARIOS
+  // ==========================
 
   Future<int> insertUser(String nombre, String apellido, String correo, String password) async {
     final db = await database;
@@ -106,9 +112,11 @@ static DatabaseHelper get instance => _instance;
     return await db.delete('usuarios', where: 'id = ?', whereArgs: [id]);
   }
 
-  // === Marcadores ===
+  // =============================
+  // 📍 FUNCIONES DE MARCADORES
+  // =============================
 
-  Future<int> insertMarker(String titulo, String descripcion, double latitud, double longitud) async {
+  Future<int> insertMarker(String titulo, String descripcion, double latitud, double longitud, String correo) async {
     final db = await database;
     return await db.insert(
       'marcadores',
@@ -117,6 +125,7 @@ static DatabaseHelper get instance => _instance;
         'descripcion': descripcion,
         'latitud': latitud,
         'longitud': longitud,
+        'correo': correo,
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
@@ -125,6 +134,24 @@ static DatabaseHelper get instance => _instance;
   Future<List<Map<String, dynamic>>> getMarkers() async {
     final db = await database;
     return await db.query('marcadores');
+  }
+
+  Future<List<Map<String, dynamic>>> getMarkersByCorreo(String correo) async {
+    final db = await database;
+    return await db.query('marcadores', where: 'correo = ?', whereArgs: [correo]);
+  }
+
+  Future<int> updateMarker(int id, String titulo, String descripcion) async {
+    final db = await database;
+    return await db.update(
+      'marcadores',
+      {
+        'titulo': titulo,
+        'descripcion': descripcion,
+      },
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 
   Future<void> deleteMarker(int id) async {
